@@ -15,9 +15,10 @@ type SshRegistryConnection struct {
 }
 
 type RegistryClientConfig struct {
-	Address    string
-	SshKeyPath string
-	SshConfig  ssh.ClientConfig
+	Address      string
+	SshKeyPath   string
+	SshAgentSock string
+	SshConfig    ssh.ClientConfig
 }
 
 func NewSshClientConfig() ssh.ClientConfig {
@@ -64,7 +65,7 @@ func (cfg *RegistryClientConfig) AddSshAuth() error {
 		methods = append(methods, method)
 	}
 
-	method, err = authViaAgent()
+	method, err = authViaAgent(cfg.SshAgentSock)
 	if err != nil {
 		slog.Warn("SSH agent strategy unavailable", "error", err)
 	} else {

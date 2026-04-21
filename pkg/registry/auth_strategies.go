@@ -33,14 +33,11 @@ func authViaKeyFile(path string) (ssh.AuthMethod, error) {
 	return ssh.PublicKeys(signer), nil
 }
 
-// authViaAgent attempts to connect to the SSH agent via the SSH_AUTH_SOCK
-// environment variable and return it as an SSH auth method.
-func authViaAgent() (ssh.AuthMethod, error) {
-	slog.Info("Attempting SSH agent auth")
+func authViaAgent(sockPath string) (ssh.AuthMethod, error) {
+	slog.Info("Attempting SSH agent auth", "path", sockPath)
 
-	sockPath := os.Getenv("SSH_AUTH_SOCK")
 	if sockPath == "" {
-		err := fmt.Errorf("SSH_AUTH_SOCK is not set")
+		err := fmt.Errorf("SSH agent socket path is not configured and SSH_AUTH_SOCK is not set")
 		slog.Warn("SSH agent auth failed", "error", err)
 		return nil, err
 	}

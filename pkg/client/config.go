@@ -20,9 +20,10 @@ func NewTunnelClientConfig() *TunnelClientConfig {
 		TargetPort:  viper.GetString("port"),
 		TargetProto: "http",
 		RegistryConfig: registry.RegistryClientConfig{
-			Address:    viper.GetString("registry"),
-			SshKeyPath: viper.GetString("ssh_key_path"),
-			SshConfig:  registry.NewSshClientConfig(),
+			Address:      viper.GetString("registry"),
+			SshKeyPath:   viper.GetString("ssh_key_path"),
+			SshAgentSock: viper.GetString("ssh_agent_sock"),
+			SshConfig:    registry.NewSshClientConfig(),
 		},
 	}
 
