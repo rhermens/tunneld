@@ -1,4 +1,5 @@
 registry: host.remote-tunneld.com # Registry address
 host: localhost # Local development forward target host
 port: 4002
-ssh_key_path: .ssh/id_ed25519 # Location of public ssh key for registry authentication
+ssh_key_path: .ssh/id_ed25519 # Location of private ssh key for registry authentication
+# ssh_agent_sock: /run/ssh-agent.sock # SSH agent socket path (optional, defaults to SSH_AUTH_SOCK env var)

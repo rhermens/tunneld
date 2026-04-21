@@ -31,11 +31,14 @@ func NewTunnelCmd() *cobra.Command {
 	tunnelCmd.Flags().String("host", "localhost", "Host to forward to")
 	tunnelCmd.Flags().StringP("port", "p", "8080", "Port to forward to")
 	tunnelCmd.Flags().StringP("registry", "r", ":7891", "Registry address")
-	tunnelCmd.Flags().StringP("ssh-key-path", "k", path.Join(os.Getenv("HOME"), ".ssh/id_ed25519"), "Public key path")
+	tunnelCmd.Flags().StringP("ssh-key-path", "k", path.Join(os.Getenv("HOME"), ".ssh/id_ed25519"), "Private key path for registry authentication")
+	tunnelCmd.Flags().String("ssh-agent-sock", "", "SSH agent socket path (defaults to SSH_AUTH_SOCK env var)")
 	viper.BindPFlag("host", tunnelCmd.Flags().Lookup("host"))
 	viper.BindPFlag("port", tunnelCmd.Flags().Lookup("port"))
 	viper.BindPFlag("registry", tunnelCmd.Flags().Lookup("registry"))
 	viper.BindPFlag("ssh_key_path", tunnelCmd.Flags().Lookup("ssh-key-path"))
+	viper.BindPFlag("ssh_agent_sock", tunnelCmd.Flags().Lookup("ssh-agent-sock"))
+	viper.BindEnv("ssh_agent_sock", "SSH_AUTH_SOCK")
 
 	err := viper.ReadInConfig()
 	if err != nil {
