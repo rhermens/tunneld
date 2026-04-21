@@ -51,22 +51,12 @@ func NewSshRegistryConnection(config *RegistryClientConfig, typ ConnectionType) 
 }
 
 func (cfg *RegistryClientConfig) AddSshAuth() {
-	if cfg.SshKeyPath == "" {
-		return
-	}
-
-	pk, err := os.ReadFile(cfg.SshKeyPath)
-	if err != nil {
-		panic(err)
-	}
-	signer, err := ssh.ParsePrivateKey(pk)
+	method, err := authViaKeyFile(cfg.SshKeyPath)
 	if err != nil {
 		panic(err)
 	}
 
-	cfg.SshConfig.Auth = []ssh.AuthMethod{
-		ssh.PublicKeys(signer),
-	}
+	cfg.SshConfig.Auth = []ssh.AuthMethod{method}
 }
 
 func (c *SshRegistryConnection) Close() error {
