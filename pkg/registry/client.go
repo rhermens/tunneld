@@ -59,7 +59,7 @@ func (cfg *RegistryClientConfig) AddSshAuth() error {
 
 	method, err := authViaKeyFile(cfg.SshKeyPath)
 	if err != nil {
-		slog.Warn("Key file strategy unavailable, will try next strategy", "error", err)
+		slog.Warn("Key file strategy unavailable", "error", err)
 	} else {
 		slog.Info("Key file strategy added")
 		methods = append(methods, method)
@@ -77,7 +77,6 @@ func (cfg *RegistryClientConfig) AddSshAuth() error {
 		return fmt.Errorf("no SSH auth methods available: provide a key file via ssh_key_path or set SSH_AUTH_SOCK")
 	}
 
-	slog.Info("SSH authentication configured", "strategies", len(methods))
 	cfg.SshConfig.Auth = methods
 	return nil
 }
