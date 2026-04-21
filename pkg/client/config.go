@@ -1,6 +1,8 @@
 package client
 
 import (
+	"log/slog"
+
 	"github.com/rhermens/tunneld/pkg/registry"
 	"github.com/spf13/viper"
 )
@@ -24,6 +26,9 @@ func NewTunnelClientConfig() *TunnelClientConfig {
 		},
 	}
 
-	cfg.RegistryConfig.AddSshAuth()
+	if err := cfg.RegistryConfig.AddSshAuth(); err != nil {
+		slog.Error("Failed to configure SSH authentication", "error", err)
+		panic(err)
+	}
 	return cfg
 }
