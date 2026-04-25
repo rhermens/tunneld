@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -50,35 +49,6 @@ func NewSshRegistryConnection(config *RegistryClientConfig, typ ConnectionType) 
 
 	slog.Info("Opened channel to registry", "remote", config.Address)
 	return connection, nil
-}
-
-func (cfg *RegistryClientConfig) AddSshAuth() error {
-	var methods []ssh.AuthMethod
-
-	slog.Info("Configuring SSH authentication")
-
-	method, err := authViaKeyFile(cfg.SshKeyPath)
-	if err != nil {
-		slog.Warn("Key file strategy unavailable", "error", err)
-	} else {
-		slog.Info("Key file strategy added")
-		methods = append(methods, method)
-	}
-
-	method, err = authViaAgent(cfg.SshAgentSock)
-	if err != nil {
-		slog.Warn("SSH agent strategy unavailable", "error", err)
-	} else {
-		slog.Info("SSH agent strategy added")
-		methods = append(methods, method)
-	}
-
-	if len(methods) == 0 {
-		return fmt.Errorf("no SSH auth methods available: provide a key file via ssh_key_path or set SSH_AUTH_SOCK")
-	}
-
-	cfg.SshConfig.Auth = methods
-	return nil
 }
 
 func (c *SshRegistryConnection) Close() error {
