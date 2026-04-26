@@ -2,6 +2,7 @@ package registry
 
 import (
 	"fmt"
+	"log/slog"
 	"net"
 	"os"
 
@@ -10,35 +11,45 @@ import (
 )
 
 func (cfg *RegistryClientConfig) AddSshAuth() error {
-	var methods []ssh.AuthMethod
+	cfg.addKeyFile()
+	cfg.addAgent()
 
-	if cfg.SshKeyPath != "" {
-		method, err := newKeyFileAuth(cfg.SshKeyPath)
-		if err != nil {
-			panic(err)
-		}
-
-		methods = append(methods, method)
-	}
-
-	if cfg.SshAgentSock != "" {
-		method, err := newAgentAuth(cfg.SshAgentSock)
-		if err != nil {
-			panic(err)
-		}
-
-		methods = append(methods, method)
-	}
-
-	if len(methods) == 0 {
+	if len(cfg.SshConfig.Auth) == 0 {
 		return fmt.Errorf("no SSH auth methods available: provide a key file via ssh_key_path or set SSH_AUTH_SOCK")
 	}
 
-	cfg.SshConfig.Auth = methods
 	return nil
 }
 
-func newKeyFileAuth(path string) (ssh.AuthMethod, error) {
+func (cfg *RegistryClientConfig) addAgent() {
+	if cfg.SshAgentSock == "" {
+		return
+	}
+
+	method, err := newAgentAuthMethod(cfg.SshAgentSock)
+	if err != nil {
+		slog.Warn("Failed to add ssh agent", "sock", cfg.SshAgentSock)
+		return
+	}
+
+	cfg.SshConfig.Auth = append(cfg.SshConfig.Auth, method)
+}
+
+func (cfg *RegistryClientConfig) addKeyFile() {
+	if cfg.SshKeyPath == "" {
+		return
+	}
+
+	method, err := newKeyFileAuthMethod(cfg.SshKeyPath)
+	if err != nil {
+		slog.Warn("Failed to add ssh key", "path", cfg.SshKeyPath)
+		return
+	}
+
+	cfg.SshConfig.Auth = append(cfg.SshConfig.Auth, method)
+}
+
+func newKeyFileAuthMethod(path string) (ssh.AuthMethod, error) {
 	pk, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -52,11 +63,7 @@ func newKeyFileAuth(path string) (ssh.AuthMethod, error) {
 	return ssh.PublicKeys(signer), nil
 }
 
-func newAgentAuth(sockPath string) (ssh.AuthMethod, error) {
-	if sockPath == "" {
-		return nil, fmt.Errorf("Agent sock path is empty")
-	}
-
+func newAgentAuthMethod(sockPath string) (ssh.AuthMethod, error) {
 	conn, err := net.Dial("unix", sockPath)
 	if err != nil {
 		return nil, err
