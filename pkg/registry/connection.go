@@ -21,14 +21,9 @@ type ConnectionType string
 const (
 	None   ConnectionType = "none"
 	Client ConnectionType = "client"
-	Proxy  ConnectionType = "proxy"
 )
 
 type ProxyRequestType string
-
-const (
-	Forward ProxyRequestType = "forward"
-)
 
 type SSHConn interface {
 	Wait() error
@@ -63,25 +58,10 @@ func (r *Registry) AddConnection(nConn net.Conn) error {
 					ssh.DiscardRequests(openChan.Requests)
 				})
 			}
-
-			if openChan.Type == Proxy {
-				c.wg.Go(func() {
-					r.HandleProxyChannelRequests(openChan.Requests)
-				})
-			}
 		}
 	})
 
 	return nil
-}
-
-func (r *Registry) HandleProxyChannelRequests(reqs <-chan *ssh.Request) {
-	for req := range reqs {
-		if req.Type == string(Forward) {
-			r.FanoutBuffer(req.Payload)
-		}
-		slog.Info("Received channel request", "type", req.Type, "want_reply", req.WantReply)
-	}
 }
 
 func NewConnectionFromTCP(conn net.Conn, rConfig *RegistryServerConfig) (*Connection, error) {
@@ -119,7 +99,7 @@ func (c *Connection) AcceptChannels() <-chan *OpenChannel {
 
 	wg.Go(func() {
 		for channel := range c.ChannelRequests {
-			if channel.ChannelType() != string(Client) && channel.ChannelType() != string(Proxy) {
+			if channel.ChannelType() != string(Client) {
 				channel.Reject(ssh.UnknownChannelType, "unsupported channel type")
 				slog.Warn("Rejected channel request", "type", channel.ChannelType(), "remote", c.RemoteAddr(), "local", c.LocalAddr())
 				continue
@@ -136,11 +116,6 @@ func (c *Connection) AcceptChannels() <-chan *OpenChannel {
 			if channel.ChannelType() == string(Client) {
 				c.Type = Client
 				openChannel.Type = Client
-			}
-
-			if channel.ChannelType() == string(Proxy) {
-				c.Type = Proxy
-				openChannel.Type = Proxy
 			}
 
 			slog.Info("Accepted channel req", "remote", c.RemoteAddr(), "local", c.LocalAddr(), "type", c.Type)

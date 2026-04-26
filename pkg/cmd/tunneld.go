@@ -15,27 +15,25 @@ import (
 func NewTunneldCmd() *cobra.Command {
 	serveCmd := &cobra.Command{
 		Use:   "tunneld",
-		Short: "Start standalone tunnel daemon",
+		Short: "Start tunnel daemon",
 		Run: func(cmd *cobra.Command, args []string) {
-			NewStandaloneCmd().Run(cmd, args)
+			NewServeCmd().Run(cmd, args)
 		},
 	}
 
 	tunneldConfig()
-	serveCmd.AddCommand(NewRegistryCmd())
-	serveCmd.AddCommand(NewProxyCmd())
-	serveCmd.AddCommand(NewStandaloneCmd())
+	serveCmd.AddCommand(NewServeCmd())
 	return serveCmd
 }
 
-func NewStandaloneCmd() *cobra.Command {
-	standaloneCmd := &cobra.Command{
-		Use:   "standalone",
-		Short: "Start standalone tunneld server",
+func NewServeCmd() *cobra.Command {
+	serveCmd := &cobra.Command{
+		Use:   "serve",
+		Short: "Start tunneld server",
 		Run: func(cmd *cobra.Command, args []string) {
 			var wg sync.WaitGroup
 			registry := registry.NewRegistry(registry.NewRegistryServerConfig())
-			proxy := proxy.NewStandaloneHttpProxy(proxy.NewHttpServerConfig(), &registry)
+			proxy := proxy.NewHttpProxy(proxy.NewHttpServerConfig(), &registry)
 
 			wg.Go(func() {
 				err, _ := registry.Listen()
@@ -57,41 +55,7 @@ func NewStandaloneCmd() *cobra.Command {
 		},
 	}
 
-	return standaloneCmd
-}
-
-func NewRegistryCmd() *cobra.Command {
-	registryCmd := &cobra.Command{
-		Use:   "registry",
-		Short: "Start registry server",
-		Run: func(cmd *cobra.Command, args []string) {
-			registry := registry.NewRegistry(registry.NewRegistryServerConfig())
-			_, err := registry.Listen()
-			if err != nil {
-				slog.Error("Failed to start registry server", "error", err)
-				os.Exit(1)
-			}
-		},
-	}
-
-	return registryCmd
-}
-
-func NewProxyCmd() *cobra.Command {
-	proxyCmd := &cobra.Command{
-		Use:   "proxy",
-		Short: "Start proxy server",
-		Run: func(cmd *cobra.Command, args []string) {
-			proxy := proxy.NewHttpProxy(proxy.NewHttpServerConfig())
-			err := proxy.Listen()
-			if err != nil {
-				slog.Error("Failed to start http server", "error", err)
-				os.Exit(1)
-			}
-		},
-	}
-
-	return proxyCmd
+	return serveCmd
 }
 
 func tunneldConfig() {

@@ -3,7 +3,6 @@ package registry
 import (
 	"fmt"
 	"log/slog"
-	"net"
 
 	"github.com/rhermens/tunneld/pkg/registry/keystore"
 	"github.com/spf13/viper"
@@ -28,7 +27,6 @@ func SetConfigDefaults() {
 	viper.SetDefault("registry.port", "7891")
 	viper.SetDefault("registry.ssh.host_key_path", ".ssh/id_ed25519")
 	viper.SetDefault("registry.ssh.authorized_keys", []string{})
-	viper.SetDefault("registry.ssh.allow_internal_unauthenticated", false)
 	viper.SetDefault("registry.ssh.github.organization", nil)
 	viper.SetDefault("registry.ssh.github.token", nil)
 }
@@ -49,22 +47,8 @@ func newSshConfig() *SshConfig {
 		Keystores:                    keystores,
 		HostKeyPath:                  viper.GetString("registry.ssh.host_key_path"),
 		SshConfig: &ssh.ServerConfig{
-			NoClientAuth:      viper.GetBool("registry.ssh.allow_internal_unauthenticated"),
+			NoClientAuth:      false,
 			PublicKeyCallback: newPublicKeyCallback(keystores),
-			NoClientAuthCallback: func(conn ssh.ConnMetadata) (*ssh.Permissions, error) {
-				ip := conn.RemoteAddr().(*net.TCPAddr).IP
-				if ip.IsLoopback() || ip.IsPrivate() {
-					slog.Info("Allowing connection without authentication", "user", conn.User(), "remote", conn.RemoteAddr())
-					return &ssh.Permissions{
-						Extensions: map[string]string{
-							"no-auth": "true",
-						},
-					}, nil
-				}
-
-				slog.Warn("Denied connection without authentication", "user", conn.User(), "remote", conn.RemoteAddr().String(), "ip", ip.String())
-				return nil, fmt.Errorf("authentication required for %q", conn.User())
-			},
 		},
 	}
 

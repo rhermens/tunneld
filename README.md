@@ -33,9 +33,7 @@ Refer to `examples/tunnel.yaml` for an example configuration file.
 
 
 ## Tunneld server usage
-`tunneld registry` start a tunneld registry server.  
-`tunneld proxy` start a tunneld proxy server receiving http webhooks.  
-`tunneld standalone` start a tunneld standalone server containing a registry and embedded http proxy.  
+`tunneld serve` start a tunneld server containing a ssh registry and http proxy.  
 
 refer to `examples/tunneld.yaml`, for an example configuration file.  
 
