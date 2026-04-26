@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/google/go-github/v75/github"
 	"github.com/spf13/viper"
@@ -19,7 +20,9 @@ type GitHubKeystore struct {
 	authorizedKeys map[string]bool
 	config         GitHubConfig
 	client         *github.Client
+	ticker         *time.Ticker
 	mu             sync.Mutex
+	wg             sync.WaitGroup
 }
 
 func NewGitHubKeystore() *GitHubKeystore {
@@ -28,19 +31,24 @@ func NewGitHubKeystore() *GitHubKeystore {
 		Token:        viper.GetString("registry.ssh.github.token"),
 	}
 
-	slog.Info("Fetching authorized keys from GitHub organization", "organization", config.Organization)
-
-	client := github.NewClient(nil).WithAuthToken(config.Token)
-
 	keystore := &GitHubKeystore{
 		config: config,
-		client: client,
+		client: github.NewClient(nil).WithAuthToken(config.Token),
+		ticker: time.NewTicker(viper.GetDuration("registry.ssh.github.refresh_interval")),
 	}
-	keystore.Refresh()
+
+	keystore.wg.Go(func() {
+		keystore.Refresh()
+		for range keystore.ticker.C {
+			keystore.Refresh()
+		}
+	})
+
 	return keystore
 }
 
 func (k *GitHubKeystore) Refresh() {
+	slog.Info("Fetching authorized keys from GitHub organization", "organization", k.config.Organization)
 	var authorizedKeys []string
 
 	members, _, err := k.client.Organizations.ListMembers(context.Background(), k.config.Organization, nil)

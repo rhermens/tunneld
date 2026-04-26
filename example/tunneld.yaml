@@ -11,6 +11,7 @@ registry:
     github: # Github organization configuration
       organization: org-name
       token: ghp_token
+      refresh_interval: 30m
     host_key_path: .ssh/id_ed25519
     authorized_keys: # List of authorized public keys
       # - ssh-ed25519 ***/***

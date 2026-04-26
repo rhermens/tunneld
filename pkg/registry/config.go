@@ -29,6 +29,7 @@ func SetConfigDefaults() {
 	viper.SetDefault("registry.ssh.authorized_keys", []string{})
 	viper.SetDefault("registry.ssh.github.organization", nil)
 	viper.SetDefault("registry.ssh.github.token", nil)
+	viper.SetDefault("registry.ssh.github.refresh_interval", "1h")
 }
 
 func NewRegistryServerConfig() *RegistryServerConfig {

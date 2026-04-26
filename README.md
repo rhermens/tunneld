@@ -42,5 +42,4 @@ The registries host key will be automatically generated on first start and store
 ### Keystores
 Keystores are used to authenticate tunnel clients.
 - GitHub organizations, all public keys of members will be allowed to connect.  
- (:exclamation: new organization members/public keys currently require a server restart)
 - Yaml configuration, a list of allowed public keys.
