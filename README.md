@@ -28,7 +28,7 @@ tunnel \
     --host <local-dev-server-address> \
     --port <local-dev-server-port>
 ```
-Options can be configurated via yaml file, defaulting to `~/.config/tunnel/tunnel.yaml`, or `./tunnel.yaml`.  
+Options can be configured via yaml file, defaulting to `~/.config/tunnel/tunnel.yaml`, or `./tunnel.yaml`.  
 Refer to `examples/tunnel.yaml` for an example configuration file.
 
 
